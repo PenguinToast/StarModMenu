@@ -1,0 +1,34 @@
+{
+  "animatedParts" : {
+    "stateTypes" : {
+      "normalState" : {
+        "default" : "animate",
+        "states" : {
+          "animate" : {
+            "frames" : 10,
+            "cycle" : 2,
+            "mode" : "loop"
+          }
+        }
+      }
+    },
+
+    "parts" : {
+      "smmobject" : {
+        "properties" : {
+          "centered" : false
+        },
+
+        "partStates" : {
+          "normalState" : {
+            "animate" : {
+              "properties" : {
+                "image" : "<partImage>:<frame>"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

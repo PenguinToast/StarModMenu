@@ -1,0 +1,12 @@
+{
+    "name": "StarModMenu",
+    "version": "Beta v. Enraged Koala",
+    "path": ".",
+    "dependencies": [],
+    "metadata": {
+        "author": "PenguinToast",
+        "version": "1.0",
+        "description": "Pluggable interface for mod configuration menus",
+        "support_url": ""
+    }
+}

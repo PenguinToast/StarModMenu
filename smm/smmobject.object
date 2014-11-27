@@ -1,0 +1,68 @@
+{
+  "objectName" : "smmobject",
+  "rarity" : "Rare",
+  "description" : "A metallic cylinder with odd engravings. I wonder what happens when I touch it?",
+  "shortdescription" : "StarModMenu Console",
+  "category" : "light",
+  "race" : "generic",
+
+  "price" : 0,
+  "printable" : false,
+  
+  "lightColor" : [40, 100, 100],
+
+  "flickerPeriod" : 1,
+  "flickerMinIntensity" : 0.9,
+  "flickerMaxIntensity" : 1,
+  "flickerPeriodVariance" : 0,
+  "flickerIntensityVariance" : 0,
+
+  "inventoryIcon" : "smmobjecticon.png",
+  "orientations" : [
+    {
+      "imageLayers" : [ { "image" : "smmobject.png:<color>.<frame>" } ],
+      "imagePosition" : [0, 0],
+      "frames" : 9,
+      "animationCycle" : 1,
+
+      "spaceScan" : 0.1,
+      "anchors" : [ "bottom" ],
+      "direction" : "right"
+    }
+  ],
+
+  "scripts" : [ "/smm/penguingui.lua", "smmobject.lua" ],
+  "scriptDelta" : 15,
+
+  "mods" : [],
+  "interactionConfig" : {
+    "gui" : {
+      "background" : {
+        "zlevel" : 0,
+        "type" : "background",
+        "fileHeader" : "/smm/consoleheader.png",
+        "fileBody" : "/smm/consolebody.png"
+      },
+      "scriptCanvas" : {
+        "zlevel" : 1,
+        "type" : "canvas",
+        "rect" : [40, 45, 434, 254],
+        "captureMouseEvents" : true,
+        "captureKeyboardEvents" : true
+      },
+      "close" : {
+        "zlevel" : 2,
+        "type" : "button",
+        "base" : "/interface/cockpit/xup.png",
+        "hover" : "/interface/cockpit/xdown.png",
+        "pressed" : "/interface/cockpit/xdown.png",
+        "callback" : "close",
+        "position" : [419, 263],
+        "pressedOffset" : [0, -1]
+      }
+    },
+    "scripts" : ["/penguingui.lua", "/smm/smmconsole.lua"],
+    "scriptDelta" : 1,
+    "scriptCanvas" : "scriptCanvas"
+  }
+}
