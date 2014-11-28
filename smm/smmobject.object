@@ -61,7 +61,7 @@
         "pressedOffset" : [0, -1]
       }
     },
-    "scripts" : ["/penguingui.lua", "/smm/smmconsole.lua"],
+    "scripts" : ["/smm/penguingui.lua", "/smm/smmconsole.lua"],
     "scriptDelta" : 1,
     "scriptCanvas" : "scriptCanvas"
   }
