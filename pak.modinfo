@@ -1,11 +1,11 @@
 {
     "name": "StarModMenu",
-    "version": "Beta v. Enraged Koala",
+    "version": "Beta v. Upbeat Giraffe",
     "path": ".",
     "dependencies": [],
     "metadata": {
         "author": "PenguinToast",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "description": "Pluggable interface for mod configuration menus",
         "support_url": ""
     }
