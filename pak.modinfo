@@ -1,11 +1,11 @@
 {
-    "name": "StarModMenu",
+    "name": "StarModMenu v1.0.4",
     "version": "Beta v. Upbeat Giraffe",
     "path": ".",
     "dependencies": [],
     "metadata": {
         "author": "PenguinToast",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "description": "Pluggable interface for mod configuration menus",
         "support_url": ""
     }
