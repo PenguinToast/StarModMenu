@@ -1,6 +1,6 @@
 {
   "input" : [
-    { "item" : "money", "count" : 0 }
+
   ],
   "output" : {
     "item" : "smmobject",
