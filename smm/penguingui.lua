@@ -1,6 +1,6 @@
 -- "version": "Beta v. Upbeat Giraffe",
 -- "author": "PenguinToast",
--- "version": "0.3.2",
+-- "version": "0.4.1",
 -- "support_url": "http://penguintoast.github.io/PenguinGUI"
 -- This script contains all the scripts in this library, so you only need to
 -- include this script for production purposes.
@@ -21,6 +21,9 @@ function PtUtil.library()
     "/penguingui/Component.lua",
     "/penguingui/Line.lua",
     "/penguingui/Rectangle.lua",
+    "/penguingui/Align.lua",
+    "/penguingui/HorizontalLayout.lua",
+    "/penguingui/VerticalLayout.lua",
     "/penguingui/Panel.lua",
     "/penguingui/Frame.lua",
     "/penguingui/Button.lua",
@@ -39,8 +42,8 @@ function PtUtil.library()
 end
 
 function PtUtil.drawText(text, options, fontSize, color)
+  fontSize = fontSize or 16
   if text:byte() == 32 then -- If it starts with a space, offset the string
-    fontSize = fontSize or 16
     local xOffset = PtUtil.getStringWidth(" ", fontSize)
     local oldX = options.position[1]
     options.position[1] = oldX + xOffset
@@ -55,14 +58,15 @@ function PtUtil.getStringWidth(text, fontSize)
   local widths = PtUtil.charWidths
   local scale = PtUtil.getFontScale(fontSize)
   local out = 0
-  for i=1,#text,1 do
+  local len = #text
+  for i=1,len,1 do
     out = out + widths[string.byte(text, i)]
   end
   return out * scale
 end
 
 function PtUtil.getFontScale(size)
-  return (size - 16) * 0.0625 + 1
+  return size / 16
 end
 
 PtUtil.specialKeyMap = {
@@ -600,7 +604,7 @@ local createFunction = function(f)
       getters[i] = getter
     end
     out.valueChanged = function(binding, old, new)
-      out.value = f(unpack(getters))
+      out.value = f(table.unpack(getters))
     end
     for i = 1, numArgs, 1 do
       local value = args[i]
@@ -1166,22 +1170,170 @@ function Rectangle:draw(dt)
 end
 
 --------------------------------------------------------------------------------
+-- Align.lua
+--------------------------------------------------------------------------------
+
+Align = {}
+
+Align.LEFT = 0
+Align.CENTER = 1
+Align.RIGHT = 2
+Align.TOP = 3
+Align.BOTTOM = 4
+
+--------------------------------------------------------------------------------
+-- HorizontalLayout.lua
+--------------------------------------------------------------------------------
+
+HorizontalLayout = class()
+
+HorizontalLayout.padding = nil
+HorizontalLayout.vAlignment = Align.CENTER
+HorizontalLayout.hAlignment = Align.LEFT
+
+
+function HorizontalLayout:_init(padding, hAlign, vAlign)
+  self.padding = padding or 0
+  if hAlign then
+    self.hAlignment = hAlign
+  end
+  if vAlign then
+    self.vAlignment = vAlign
+  end
+end
+
+
+function HorizontalLayout:layout()
+  local vAlign = self.vAlignment
+  local hAlign = self.hAlignment
+  local padding = self.padding
+
+  local container = self.container
+  local components = container.children
+  local totalWidth = 0
+  for _,component in ipairs(components) do
+    totalWidth = totalWidth + component.width
+  end
+  totalWidth = totalWidth + (#components - 1) * padding
+
+  local startX
+  if hAlign == Align.LEFT then
+    startX = 0
+  elseif hAlign == Align.CENTER then
+    startX = (container.width - totalWidth) / 2
+  else -- ALIGN_RIGHT
+    startX = container.width - totalWidth
+  end
+
+  for _,component in ipairs(components) do
+    component.x = startX
+    if vAlign == Align.TOP then
+      component.y = container.height - component.height
+    elseif vAlign == Align.CENTER then
+      component.y = (container.height - component.height) / 2
+    else -- ALIGN_BOTTOM
+      component.y = 0
+    end
+    startX = startX + component.width + padding
+  end
+end
+
+--------------------------------------------------------------------------------
+-- VerticalLayout.lua
+--------------------------------------------------------------------------------
+
+VerticalLayout = class()
+
+VerticalLayout.padding = nil
+VerticalLayout.vAlignment = Align.TOP
+VerticalLayout.hAlignment = Align.CENTER
+
+
+function VerticalLayout:_init(padding, vAlign, hAlign)
+  self.padding = padding or 0
+  if hAlign then
+    self.hAlignment = hAlign
+  end
+  if vAlign then
+    self.vAlignment = vAlign
+  end
+end
+
+
+function VerticalLayout:layout()
+  local vAlign = self.vAlignment
+  local hAlign = self.hAlignment
+  local padding = self.padding
+
+  local container = self.container
+  local components = container.children
+  local totalHeight = 0
+  for _,component in ipairs(components) do
+    totalHeight = totalHeight + component.height
+  end
+  totalHeight = totalHeight + (#components - 1) * padding
+
+  local startY
+  if vAlign == Align.TOP then
+    startY = container.height
+  elseif vAlign == Align.CENTER then
+    startY = container.height - (container.height - totalHeight) / 2
+  else -- ALIGN_BOTTOM
+    startY = totalHeight
+  end
+
+  for _,component in ipairs(components) do
+    component.y = startY - component.height
+    if hAlign == Align.LEFT then
+      component.x = 0
+    elseif hAlign == Align.CENTER then
+      component.x = (container.width - component.width) / 2
+    else -- ALIGN_RIGHT
+      component.x = container.width - component.width
+    end
+    startY = startY - (component.height + padding)
+  end
+end
+
+--------------------------------------------------------------------------------
 -- Panel.lua
 --------------------------------------------------------------------------------
 
 Panel = class(Component)
 
 
-function Panel:_init(x, y)
+function Panel:_init(x, y, width, height)
   Component._init(self)
   self.x = x
   self.y = y
+  if width then
+    self.width = width
+  end
+  if height then
+    self.height = height
+  end
 end
 
 
 function Panel:add(child)
   Component.add(self, child)
-  self:pack()
+  self:updateLayoutManager()
+  if not self.layoutManager then
+    self:pack()
+  end
+end
+
+function Panel:setLayoutManager(layout)
+  self.layoutManager = layout
+  layout.container = self
+  self:updateLayoutManager()
+end
+
+function Panel:updateLayoutManager()
+  local layout = self.layoutManager
+  if layout then
+    layout:layout()
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -1432,6 +1584,10 @@ TextField.defaultTextColor = "#333333"
 TextField.defaultTextHoverColor = "#777777"
 TextField.cursorColor = "white"
 TextField.cursorRate = 1
+TextField.filter = nil
+
+TextField.repeatDelay = 0.5
+TextField.repeatInterval = 0.05
 
 
 function TextField:_init(x, y, width, height, defaultText)
@@ -1449,11 +1605,22 @@ function TextField:_init(x, y, width, height, defaultText)
   self.textOffset = 0
   self.textClip = nil
   self.mouseOver = false
+  self.keyTimes = {}
 end
 
 
 function TextField:update(dt)
   if self.hasFocus then
+    local keyTimes = self.keyTimes
+    for key,dur in pairs(keyTimes) do
+      local time = dur + dt
+      keyTimes[key] = time
+      if time > self.repeatDelay + self.repeatInterval then
+        self:keyEvent(key, true)
+        keyTimes[key] = self.repeatDelay
+      end
+    end
+    
     local timer = self.cursorTimer
     local rate = self.cursorRate
     timer = timer - dt
@@ -1518,6 +1685,9 @@ function TextField:draw(dt)
 end
 
 function TextField:setCursorPosition(pos)
+  if pos > #self.text then
+    pos = #self.text
+  end
   self.cursorPosition = pos
 
   if pos < self.textOffset then
@@ -1576,7 +1746,7 @@ function TextField:clickEvent(position, button, pressed)
       local charWidth = PtUtil.getStringWidth(text:sub(i, i), self.fontSize)
       if xPos < (totalWidth + charWidth * 0.6) then
         self:setCursorPosition(i - 1)
-        return
+        return true
       end
       totalWidth = totalWidth + charWidth
     end
@@ -1587,6 +1757,12 @@ function TextField:clickEvent(position, button, pressed)
 end
 
 function TextField:keyEvent(keyCode, pressed)
+  if pressed then
+    self.keyTimes[keyCode] = self.keyTimes[keyCode] or 0
+  else
+    self.keyTimes[keyCode] = nil
+  end
+  
   local keyState = GUI.keyState
   if not pressed
     or keyState[305] or keyState[306]
@@ -1602,13 +1778,26 @@ function TextField:keyEvent(keyCode, pressed)
   local text = self.text
   local cursorPos = self.cursorPosition
 
+  local filter = self.filter
   if #key == 1 then -- Type a character
-    self.text = text:sub(1, cursorPos) .. key .. text:sub(cursorPos + 1)
+    text = text:sub(1, cursorPos) .. key .. text:sub(cursorPos + 1)
+    if filter then
+      if not text:match(filter) then
+        return true
+      end
+    end
+    self.text = text
     self:setCursorPosition(cursorPos + 1)
   else -- Special character
     if key == "backspace" then
       if cursorPos > 0 then
-        self.text = text:sub(1, cursorPos - 1) .. text:sub(cursorPos + 1)
+        text = text:sub(1, cursorPos - 1) .. text:sub(cursorPos + 1)
+        if filter then
+          if not text:match(filter) then
+            return true
+          end
+        end
+        self.text = text
         self:setCursorPosition(cursorPos - 1)
       end
     elseif key == "enter" then
@@ -1617,7 +1806,13 @@ function TextField:keyEvent(keyCode, pressed)
       end
     elseif key == "delete" then
       if cursorPos < #text then
-        self.text = text:sub(1, cursorPos) .. text:sub(cursorPos + 2)
+        text = text:sub(1, cursorPos) .. text:sub(cursorPos + 2)
+        if filter then
+          if not text:match(filter) then
+            return true
+          end
+        end
+        self.text = text
       end
     elseif key == "right" then
       self:setCursorPosition(math.min(cursorPos + 1, #text))
@@ -1840,7 +2035,7 @@ TextRadioButton = class(RadioButton)
 TextRadioButton.hoverColor = "#1F1F1F"
 TextRadioButton.pressedColor = "#454545"
 TextRadioButton.checkColor = "#343434"
-TextButton.text = nil
+TextRadioButton.text = nil
 TextRadioButton.textPadding = 2
 
 
@@ -2126,6 +2321,7 @@ function List:_init(x, y, width, height, itemSize, itemFactory, horizontal)
   self.topIndex = 1
   self.bottomIndex = 1
   self.itemCount = 0
+  self.horizontal = horizontal
   self.mouseOver = false
 
   local borderSize = self.borderSize
@@ -2224,6 +2420,9 @@ function List:removeItem(target)
       return nil, -1
     end
   else -- Remove by item
+    if target == nil then
+      return nil
+    end
     item = target
     index = PtUtil.removeObject(self.items, item)
     if index == -1 then
